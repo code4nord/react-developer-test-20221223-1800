@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { FunctionComponent } from 'react';
-import api from '../../lib/api';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -19,27 +18,33 @@ import {
   SortbyOldestFirst,
 } from '../../utils/utils';
 
-export const UsersTable: FunctionComponent = () => {
-  const [usersDiffResponse, setUsersDiffResponse] =
-    useState<DiffResponseData>();
-  const [usersData, setUsersData] = useState<TableData[]>([]);
+interface TableComponentProps {
+  title: string;
+  getDiff: () => Promise<DiffResponseData>;
+}
+
+export const TableComponent: FunctionComponent<TableComponentProps> = (
+  props
+) => {
+  const [diffResponse, setDiffResponse] = useState<DiffResponseData>();
+  const [tableData, setTableData] = useState<TableData[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [isSortedByOldest, setIsSortedByOldest] = useState<boolean>(false);
 
   const classes: ClassNameMap = useTableStyles();
 
-  const fetchUsersData = async (): Promise<void> => {
+  const fetchTableData = async (): Promise<void> => {
     setLoading(true);
     try {
-      const result: DiffResponseData = await api.getUsersDiff();
-      setUsersDiffResponse(result);
+      const result: DiffResponseData = await props.getDiff();
+      setDiffResponse(result);
       if (isSortedByOldest) {
-        setUsersData((previousValue: any) =>
+        setTableData((previousValue: TableData[]) =>
           SortbyOldestFirst([...previousValue, ...result.data])
         );
       } else {
-        setUsersData((previousValue: any) =>
+        setTableData((previousValue: TableData[]) =>
           SortbyNewestFirst([...previousValue, ...result.data])
         );
       }
@@ -61,22 +66,22 @@ export const UsersTable: FunctionComponent = () => {
     return { date, id, oldValue, newValue };
   };
 
-  const rows: TableRowData[] = usersData?.map((user: TableData) =>
+  const rows: TableRowData[] = tableData?.map((row: TableData) =>
     createData(
-      user.timestamp,
-      user.id,
-      user.diff[0].oldValue,
-      user.diff[0].newValue
+      row.timestamp,
+      row.id,
+      row.diff[0].oldValue,
+      row.diff[0].newValue
     )
   );
 
   useEffect(() => {
-    fetchUsersData();
+    fetchTableData();
   }, []);
 
   return (
     <div className={classes.tableContainer}>
-      <h1 className={classes.title}>Users</h1>
+      <h1 className={classes.title}>{props.title}</h1>
       <TableContainer component={Paper}>
         <Table className={classes.table} aria-label='simple table'>
           <TableHead>
@@ -88,7 +93,7 @@ export const UsersTable: FunctionComponent = () => {
                     className={classes.icon}
                     onClick={() => {
                       setIsSortedByOldest(!isSortedByOldest);
-                      SortbyOldestFirst(usersData);
+                      SortbyOldestFirst(tableData);
                     }}
                   >
                     &#8681;
@@ -98,14 +103,16 @@ export const UsersTable: FunctionComponent = () => {
                     className={classes.icon}
                     onClick={() => {
                       setIsSortedByOldest(!isSortedByOldest);
-                      SortbyNewestFirst(usersData);
+                      SortbyNewestFirst(tableData);
                     }}
                   >
                     &#8679;
                   </span>
                 )}
               </TableCell>
-              <TableCell className={classes.tableHead}>User ID</TableCell>
+              <TableCell className={classes.tableHead}>
+                {props.title} ID
+              </TableCell>
               <TableCell className={classes.tableHead}>Old value</TableCell>
               <TableCell className={classes.tableHead}>New value</TableCell>
             </TableRow>
@@ -131,11 +138,11 @@ export const UsersTable: FunctionComponent = () => {
                       <p className={classes.error}>{errorMessage}</p>
                     </Box>
                   )}
-                  {usersDiffResponse &&
+                  {diffResponse &&
                     !loading &&
-                    usersData.length < usersDiffResponse.total && (
+                    tableData.length < diffResponse.total && (
                       <Button
-                        onClick={fetchUsersData}
+                        onClick={fetchTableData}
                         className={classes.button}
                         variant='contained'
                       >

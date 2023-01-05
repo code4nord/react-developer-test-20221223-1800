@@ -20,7 +20,7 @@ interface TableDiffData {
 
 export interface TableRowData {
   date: Date;
+  id: string;
   newValue: string;
   oldValue: string;
-  id: string;
 }

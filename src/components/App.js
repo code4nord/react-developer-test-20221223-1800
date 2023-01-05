@@ -1,14 +1,14 @@
 import React from 'react';
 import { Container, Box } from '@material-ui/core';
-import { UsersTable } from './users/UsersTable';
-import { ProjectsTable } from './projects/ProjectsTable';
+import { TableComponent } from './users/TableComponent';
+import api from '../lib/api';
 
 export const App = () => {
   return (
     <Container className='app' fixed>
       <Box data-testid="app-box">
-        <UsersTable />
-        <ProjectsTable />
+        <TableComponent title='Users' getDiff={api.getUsersDiff} />
+        <TableComponent title='Projects' getDiff={api.getProjectsDiff} />
       </Box>
     </Container>
   );
