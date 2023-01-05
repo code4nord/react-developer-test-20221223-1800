@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Box } from '@material-ui/core';
-import { TableComponent } from './users/TableComponent';
+import { TableComponent } from './table-component/TableComponent';
 import api from '../lib/api';
 
 export const App = () => {
